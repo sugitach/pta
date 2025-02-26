@@ -146,11 +146,10 @@ ngx_module_t ngx_http_pta_module = {
     NGX_MODULE_V1_PADDING
 };
 
-ngx_int_t
+void
 ngx_http_pta_parse_cookie_header (ngx_http_request_t * r, ngx_str_t * name,
                                   ngx_array_t * values)
 {
-    ngx_uint_t i;
     u_char *start, *last, *end, ch;
     ngx_str_t *value;
 
@@ -161,7 +160,7 @@ ngx_http_pta_parse_cookie_header (ngx_http_request_t * r, ngx_str_t * name,
     headers = &r->headers_in.cookies;
     h = headers->elts;
 
-    for (i = 0; i < headers->nelts; i++)
+    for (ngx_uint_t i = 0; i < headers->nelts; i++)
       {
           ngx_log_debug2 (NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                           "parse header: \"%V: %V\"", &h[i]->key,
@@ -179,11 +178,11 @@ ngx_http_pta_parse_cookie_header (ngx_http_request_t * r, ngx_str_t * name,
 
     headers = r->headers_in.cookie;
 
-    for (h = headers, i = 0; h != NULL; h = headers->next, i++)
+    for (h = headers; h != NULL; h = h->next)
       {
           ngx_log_debug2 (NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
-                          "parse header: \"%V: %V\"", h->key,
-                          h->value);
+                          "parse header: \"%V: %V\"", &h->key,
+                          &h->value);
 
           if (name->len > h->value.len)
             {
@@ -247,10 +246,7 @@ ngx_http_pta_parse_cookie_header (ngx_http_request_t * r, ngx_str_t * name,
                       start++;
                   }
             }
-
       }
-
-    return i;
 }
 
 static void
@@ -655,7 +651,7 @@ ngx_http_pta_check_wildcard_url (ngx_http_request_t * r,
         ngx_log_error (NGX_LOG_ERR, r->connection->log, 0, "wildcard mismatch: do not enough length.");
         return 1;
     }
-    if (strncmp(r->uri.data + r->uri.len - len, beg, len) == 0) {
+    if (ngx_strncmp(r->uri.data + r->uri.len - len, beg, len) == 0) {
         return 0;
     }
     ngx_log_error (NGX_LOG_ERR, r->connection->log, 0, "wildcard mismatch: do not match string on the right side.");
